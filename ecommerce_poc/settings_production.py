@@ -20,12 +20,17 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.render.com',  # Allow all Render subdomains
+    'ecommerce-poc-onny.onrender.com',  # Your specific Render domain
 ]
 
 # Add your custom domain here if you have one
 CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN')
 if CUSTOM_DOMAIN:
     ALLOWED_HOSTS.append(CUSTOM_DOMAIN)
+
+# Also allow any host if DEBUG is True (for troubleshooting)
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
 
 # Database configuration for production
 # Render provides a PostgreSQL database URL
@@ -90,5 +95,15 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }
+
+# Additional debugging for production
+if DEBUG:
+    LOGGING['loggers']['django']['level'] = 'DEBUG'
+    LOGGING['loggers']['django.request']['level'] = 'DEBUG'
