@@ -9,6 +9,10 @@ def cart_context(request):
         if request.user.is_authenticated:
             cart, created = Cart.objects.get_or_create(user=request.user)
         else:
+            # Ensure session is initialized
+            if not request.session.session_key:
+                request.session.create()
+            
             cart_id = request.session.get('cart_id')
             if cart_id:
                 try:

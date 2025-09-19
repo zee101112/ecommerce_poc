@@ -1,310 +1,307 @@
 {% extends "admin/base_site.html" %}
-{% load static %}
-{% load i18n admin_urls admin_modify %}
-
-{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% load i18n admin_urls static admin_modify %}
 
 {% block extrahead %}
 {{ block.super }}
 <style>
-/* Enhanced change form styles */
-.change-form-container {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.change-form-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.change-form-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.change-form-actions {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-}
-
-.back-btn {
-    background: linear-gradient(135deg, #6b7280, #4b5563);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow);
-}
-
-.back-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    color: white;
-    text-decoration: none;
-}
-
-.back-btn i {
-    margin-right: 0.5rem;
-}
-
-/* Form styling */
-.form-container {
+.form-wrapper {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
     overflow: hidden;
 }
 
 .form-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
-    padding: 1.5rem 2rem;
-    border-bottom: none;
-}
-
-.form-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.form-body {
-    padding: 2rem;
-}
-
-/* Field styling */
-.form-row {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
+    padding: 20px 30px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.form-row:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+.form-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-header .breadcrumbs {
+    margin-top: 8px;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.form-header .breadcrumbs a {
+    color: white;
+    text-decoration: none;
+}
+
+.form-header .breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.form-content {
+    padding: 30px;
+}
+
+.form-row {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.form-row:hover {
+    background: #f0f9ff;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-row label {
     display: block;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
+    margin-bottom: 8px;
+    font-size: 14px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.5px;
 }
 
 .form-row input,
-.form-row textarea,
-.form-row select {
+.form-row select,
+.form-row textarea {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 12px 16px;
     border: 2px solid var(--border-color);
-    border-radius: 12px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 14px;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
+    background: white;
+    font-family: inherit;
 }
 
 .form-row input:focus,
-.form-row textarea:focus,
-.form-row select:focus {
+.form-row select:focus,
+.form-row textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    background: white;
-    transform: translateY(-2px);
+    transform: scale(1.02);
 }
 
 .form-row textarea {
-    min-height: 120px;
+    min-height: 100px;
     resize: vertical;
 }
 
 .form-row .help {
+    margin-top: 6px;
+    font-size: 12px;
     color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
     font-style: italic;
 }
 
-/* Error styling */
 .form-row .errorlist {
     list-style: none;
     padding: 0;
-    margin: 0.5rem 0 0;
+    margin: 6px 0 0 0;
 }
 
 .form-row .errorlist li {
-    background: linear-gradient(135deg, #fef2f2, #fee2e2);
     color: var(--danger-color);
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
+    font-size: 12px;
     font-weight: 500;
-    border-left: 4px solid var(--danger-color);
-    margin-bottom: 0.5rem;
-    animation: shake 0.5s ease-in-out;
+    padding: 4px 8px;
+    background: #fee2e2;
+    border-radius: 4px;
+    margin-bottom: 4px;
 }
 
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+.form-row .errorlist li:last-child {
+    margin-bottom: 0;
 }
 
-/* Fieldsets */
+/* Fieldset styling */
 fieldset {
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
 }
 
 fieldset legend {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
     font-weight: 600;
-    font-size: 0.875rem;
+    color: var(--text-primary);
+    padding: 0 10px;
+    font-size: 14px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: 0;
+    letter-spacing: 0.5px;
 }
 
 /* Inline forms */
 .inline-group {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
     border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
 }
 
-.inline-group h3 {
-    background: linear-gradient(135deg, var(--secondary-color), #7c3aed);
+.inline-group .module {
+    background: var(--light-color);
+    border-bottom: 1px solid var(--border-color);
+    margin: 0;
+    border-radius: 0;
+}
+
+.inline-group .module h2 {
+    background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
     color: white;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin: -1.5rem -1.5rem 1.5rem;
-    font-size: 1rem;
+    margin: 0;
+    padding: 15px 20px;
+    font-size: 16px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.inline-group .form-row {
+    background: white;
+    margin: 0;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    border-left: none;
+}
+
+.inline-group .form-row:last-child {
+    border-bottom: none;
+}
+
+.inline-group .form-row:hover {
+    background: #f8fafc;
+    transform: none;
 }
 
 /* Submit buttons */
 .submit-row {
-    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-    padding: 1.5rem 2rem;
+    background: var(--light-color);
+    padding: 20px 30px;
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 15px;
 }
 
-.submit-buttons {
+.submit-row .deletelink {
+    background: var(--danger-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s ease;
     display: flex;
-    gap: 0.75rem;
     align-items: center;
+    gap: 6px;
 }
 
-.default {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+.submit-row .deletelink:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.submit-row .default {
+    background: var(--primary-color);
     color: white;
     border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 12px;
+    padding: 12px 24px;
+    border-radius: 8px;
     font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: var(--shadow);
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
-.default:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+.submit-row .default:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-.default i {
-    margin-right: 0.5rem;
+.submit-row .default:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
-.deletelink {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 600;
+/* File upload styling */
+.form-row input[type="file"] {
+    padding: 8px;
+    border: 2px dashed var(--border-color);
+    background: #f8fafc;
+    border-radius: 8px;
+    cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: var(--shadow);
+}
+
+.form-row input[type="file"]:hover {
+    border-color: var(--primary-color);
+    background: #f0f9ff;
+}
+
+/* Checkbox styling */
+.form-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.form-row .checkbox-row {
     display: flex;
     align-items: center;
-}
-
-.deletelink:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    color: white;
-    text-decoration: none;
-}
-
-.deletelink i {
-    margin-right: 0.5rem;
+    gap: 8px;
 }
 
 /* Image preview */
 .image-preview {
-    margin-top: 1rem;
-    text-align: center;
-}
-
-.image-preview img {
+    margin-top: 10px;
     max-width: 200px;
-    max-height: 200px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    border-radius: 8px;
     border: 2px solid var(--border-color);
 }
 
-/* Responsive */
+/* Responsive design */
 @media (max-width: 768px) {
-    .change-form-container {
-        padding: 1rem;
+    .form-content {
+        padding: 20px;
     }
     
-    .change-form-header {
-        flex-direction: column;
-        align-items: stretch;
+    .form-header {
+        padding: 20px;
     }
     
-    .form-body {
-        padding: 1rem;
+    .form-header h1 {
+        font-size: 20px;
+    }
+    
+    .form-row {
+        padding: 15px;
     }
     
     .submit-row {
@@ -312,14 +309,16 @@ fieldset legend {
         align-items: stretch;
     }
     
-    .submit-buttons {
+    .submit-row .default,
+    .submit-row .deletelink {
+        width: 100%;
         justify-content: center;
     }
 }
 
-/* Loading state */
+/* Loading states */
 .loading {
-    opacity: 0.7;
+    opacity: 0.6;
     pointer-events: none;
 }
 
@@ -331,7 +330,7 @@ fieldset legend {
     width: 20px;
     height: 20px;
     margin: -10px 0 0 -10px;
-    border: 2px solid transparent;
+    border: 2px solid var(--border-color);
     border-top: 2px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -342,202 +341,234 @@ fieldset legend {
     100% { transform: rotate(360deg); }
 }
 
-/* Success message */
-.success-message {
-    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    color: var(--success-color);
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-    border-left: 4px solid var(--success-color);
-    animation: slideDown 0.5s ease-out;
+/* Success/Error messages */
+.messagelist {
+    margin-bottom: 20px;
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.messagelist li {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.messagelist .success {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid var(--success-color);
+}
+
+.messagelist .warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-left: 4px solid var(--warning-color);
+}
+
+.messagelist .error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid var(--danger-color);
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="change-form-container">
-    <div class="change-form-header">
-        <h1 class="change-form-title">{{ title }}</h1>
-        <div class="change-form-actions">
-            <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_changelist' %}" class="back-btn">
-                <i class="fas fa-arrow-left"></i>
-                Back to List
-            </a>
+<div class="form-wrapper">
+    <div class="form-header">
+        <h1>
+            <i class="fas fa-{% if add %}plus{% else %}edit{% endif %}"></i>
+            {% if add %}
+                Add {{ opts.verbose_name }}
+            {% else %}
+                Change {{ opts.verbose_name }}
+            {% endif %}
+        </h1>
+        <div class="breadcrumbs">
+            <a href="{% url 'admin:index' %}">Home</a> ›
+            <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a> ›
+            <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_changelist' %}">{{ opts.verbose_name_plural }}</a> ›
+            {% if add %}
+                Add
+            {% else %}
+                {{ original|truncatewords:"18" }}
+            {% endif %}
         </div>
     </div>
 
-    <div class="form-container">
-        <div class="form-header">
-            <h2>
-                {% if is_popup %}
-                {{ title }}
-                {% else %}
-                {% if add %}
-                Add {{ opts.verbose_name }}
-                {% else %}
-                Change {{ opts.verbose_name }}
-                {% endif %}
-                {% endif %}
-            </h2>
-        </div>
-
-        <div class="form-body">
-            <form method="post" id="{{ opts.model_name }}_form" novalidate>
-                {% csrf_token %}
-                
-                {% if form.non_field_errors %}
-                <div class="error-messages">
-                    {% for error in form.non_field_errors %}
-                    <div class="errorlist">
-                        <li>{{ error }}</li>
-                    </div>
-                    {% endfor %}
+    <div class="form-content">
+        {% if form.errors %}
+            <div class="messagelist">
+                <div class="error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Please correct the errors below.
                 </div>
-                {% endif %}
+            </div>
+        {% endif %}
 
-                {% for fieldset in adminform %}
-                <fieldset class="module aligned {{ fieldset.classes }}">
-                    {% if fieldset.name %}<legend>{{ fieldset.name }}</legend>{% endif %}
-                    {% for line in fieldset %}
-                    <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
-                        {% for field in line %}
-                        <div class="field-box{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}">
-                            {% if not field.is_readonly %}
-                            <label for="{{ field.field.id_for_label }}" class="required">
-                                {{ field.field.label }}
-                                {% if field.field.field.required %}<span class="asterisk">*</span>{% endif %}
-                            </label>
-                            {% endif %}
-                            
-                            {% if field.is_readonly %}
-                            <div class="readonly">{{ field.contents }}</div>
-                            {% else %}
-                            {{ field.field }}
-                            {% endif %}
-                            
-                            {% if field.field.help_text %}
-                            <div class="help">{{ field.field.help_text }}</div>
-                            {% endif %}
-                            
-                            {% if field.errors %}
-                            <div class="errorlist">
-                                {% for error in field.errors %}
-                                <li>{{ error }}</li>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="form-row">
+                    <div class="errorlist">
+                        {{ form.non_field_errors }}
                     </div>
-                    {% endfor %}
-                </fieldset>
-                {% endfor %}
+                </div>
+            {% endif %}
 
-                {% for inline_admin_formset in inline_admin_formsets %}
+            {% for fieldset in adminform %}
+                {% include "admin/includes/fieldset.html" %}
+            {% endfor %}
+
+            {% for inline_admin_formset in inline_admin_formsets %}
                 <div class="inline-group">
-                    <h3>{{ inline_admin_formset.opts.verbose_name_plural|title }}</h3>
-                    {{ inline_admin_formset.formset.management_form }}
-                    {{ inline_admin_formset.formset.non_form_errors }}
+                    <div class="module">
+                        <h2>
+                            <i class="fas fa-list"></i>
+                            {{ inline_admin_formset.opts.verbose_name_plural }}
+                        </h2>
+                    </div>
+                    
+                    {{ inline_admin_formset.management_form }}
+                    
                     {% for inline_admin_form in inline_admin_formset %}
-                    <div class="inline-related{% if forloop.last %} empty-form{% endif %}" id="{{ inline_admin_formset.formset.prefix }}-{% if not forloop.last %}{{ forloop.counter0 }}{% else %}empty{% endif %}">
-                        <h4>
-                            <b>{{ inline_admin_formset.opts.verbose_name|title }}:</b>
-                            <span class="inline_label">{% if not forloop.last %}{{ inline_admin_form.original }}{% else %}New {{ inline_admin_formset.opts.verbose_name }}{% endif %}</span>
-                            {% if inline_admin_formset.formset.can_delete and inline_admin_form.form.DELETE %}
-                            <span class="delete">{{ inline_admin_form.form.DELETE }} {{ inline_admin_form.form.DELETE.label_tag }}</span>
-                            {% endif %}
-                        </h4>
-                        {% if inline_admin_form.form.non_field_errors %}{{ inline_admin_form.form.non_field_errors }}{% endif %}
-                        {% for fieldset in inline_admin_form %}
-                        {% for line in fieldset %}
-                        <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
-                            {% for field in line %}
-                            <div class="field-box{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}">
-                                {% if not field.is_readonly %}
-                                <label for="{{ field.field.id_for_label }}" class="required">
-                                    {{ field.field.label }}
-                                    {% if field.field.field.required %}<span class="asterisk">*</span>{% endif %}
-                                </label>
-                                {% endif %}
-                                
-                                {% if field.is_readonly %}
-                                <div class="readonly">{{ field.contents }}</div>
-                                {% else %}
-                                {{ field.field }}
-                                {% endif %}
-                                
-                                {% if field.field.help_text %}
-                                <div class="help">{{ field.field.help_text }}</div>
-                                {% endif %}
-                                
-                                {% if field.errors %}
-                                <div class="errorlist">
-                                    {% for error in field.errors %}
-                                    <li>{{ error }}</li>
-                                    {% endfor %}
+                        <div class="inline-related">
+                            {% for field in inline_admin_form %}
+                                <div class="form-row{% if field.errors %} error{% endif %}">
+                                    <label for="{{ field.id_for_label }}">
+                                        {{ field.label }}
+                                        {% if field.field.required %}
+                                            <span style="color: var(--danger-color);">*</span>
+                                        {% endif %}
+                                    </label>
+                                    
+                                    {{ field }}
+                                    
+                                    {% if field.help_text %}
+                                        <div class="help">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    
+                                    {% if field.errors %}
+                                        <div class="errorlist">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
-                            </div>
                             {% endfor %}
                         </div>
-                        {% endfor %}
-                        {% endfor %}
-                    </div>
                     {% endfor %}
                 </div>
-                {% endfor %}
+            {% endfor %}
 
-                <div class="submit-row">
-                    <div class="submit-buttons">
-                        <input type="submit" value="{% if is_popup %}{% trans 'Save' %}{% else %}{% if add %}{% trans 'Save and add another' %}{% else %}{% trans 'Save' %}{% endif %}{% endif %}" class="default" name="_save">
-                        {% if not is_popup %}
-                        <input type="submit" value="{% trans 'Save and continue editing' %}" name="_continue" class="default">
-                        {% endif %}
-                        {% if has_delete_permission and not is_popup and not add %}
-                        <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_delete' original.pk %}" class="deletelink">
-                            <i class="fas fa-trash"></i>
-                            {% trans 'Delete' %}
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </form>
-        </div>
+            <div class="submit-row">
+                {% if not add %}
+                    <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_delete' original.pk %}" class="deletelink">
+                        <i class="fas fa-trash"></i>
+                        Delete
+                    </a>
+                {% endif %}
+                
+                <button type="submit" class="default" name="_save">
+                    <i class="fas fa-save"></i>
+                    Save
+                </button>
+                
+                <button type="submit" class="default" name="_addanother">
+                    <i class="fas fa-plus"></i>
+                    Save and add another
+                </button>
+                
+                <button type="submit" class="default" name="_continue">
+                    <i class="fas fa-edit"></i>
+                    Save and continue editing
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('{{ opts.model_name }}_form');
-    const submitBtn = form.querySelector('.default');
-    
-    form.addEventListener('submit', function() {
-        submitBtn.classList.add('loading');
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    });
-    
-    // Add focus effects to form fields
-    const inputs = form.querySelectorAll('input, textarea, select');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.parentElement.classList.add('focused');
+    // Add loading state to form submissions
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const buttons = form.querySelectorAll('button[type="submit"]');
+            buttons.forEach(button => {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            });
         });
-        
-        input.addEventListener('blur', function() {
-            this.parentElement.classList.remove('focused');
+    }
+
+    // Add image preview functionality
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const existingPreview = input.parentNode.querySelector('.image-preview');
+                    if (existingPreview) {
+                        existingPreview.remove();
+                    }
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview';
+                    input.parentNode.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    // Add form validation
+    const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
+    requiredFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            if (!this.value.trim()) {
+                this.style.borderColor = 'var(--danger-color)';
+                this.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+            } else {
+                this.style.borderColor = 'var(--primary-color)';
+                this.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.1)';
+            }
+        });
+    });
+
+    // Add image preview functionality
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Remove existing preview
+                    const existingPreview = input.parentNode.querySelector('.image-preview-container');
+                    if (existingPreview) {
+                        existingPreview.remove();
+                    }
+                    
+                    // Create new preview
+                    const previewContainer = document.createElement('div');
+                    previewContainer.className = 'image-preview-container';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Image preview';
+                    
+                    previewContainer.appendChild(img);
+                    input.parentNode.appendChild(previewContainer);
+                };
+                reader.readAsDataURL(file);
+            }
         });
     });
 });

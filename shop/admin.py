@@ -1,10 +1,11 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.contrib.admin import AdminSite
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.db.models import Count, Sum, Q
 from django.contrib.admin import SimpleListFilter
-from .models import Category, Product, Cart, CartItem, Order, OrderItem
+from .models import Category, Product, Order, OrderItem
 
 class IsActiveFilter(SimpleListFilter):
     title = 'Status'
@@ -167,46 +168,50 @@ class ProductAdmin(admin.ModelAdmin):
         else:  # Updated product
             self.message_user(request, f'Product "{obj.name}" was updated successfully.')
 
-class CartItemInline(admin.TabularInline):
-    model = CartItem
-    extra = 0
-    readonly_fields = ['product', 'quantity', 'total_price']
-    fields = ['product', 'quantity', 'total_price']
-    
-    def total_price(self, obj):
-        if obj.pk:
-            return f"${obj.total_price}"
-        return "-"
-    total_price.short_description = 'Total'
-
-class CartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user_or_session', 'total_items', 'total_price', 'created_at']
-    list_filter = ['created_at']
-    inlines = [CartItemInline]
-    readonly_fields = ['created_at', 'updated_at']
-    
-    def user_or_session(self, obj):
-        if obj.user:
-            return format_html('<i class="fas fa-user me-1"></i>{}', obj.user.username)
-        else:
-            return format_html('<i class="fas fa-key me-1"></i>{}', obj.session_key or 'Anonymous')
-    user_or_session.short_description = 'User/Session'
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
     readonly_fields = ['product', 'price', 'quantity', 'get_cost']
     fields = ['product', 'price', 'quantity', 'get_cost']
+    
+    def has_add_permission(self, request, obj=None):
+        """Disable adding new order items"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Disable editing order items"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Disable deleting order items"""
+        return False
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer_name', 'email', 'status', 'total_cost', 'item_count', 'created_at', 'order_actions']
     list_filter = ['status', 'created_at', 'city']
     search_fields = ['first_name', 'last_name', 'email', 'id']
-    inlines = [OrderItemInline]
-    readonly_fields = ['created_at', 'updated_at', 'total_cost', 'item_count']
-    list_editable = ['status']
+    readonly_fields = ['user', 'first_name', 'last_name', 'email', 'address', 'postal_code', 'city', 'created_at', 'updated_at', 'total_cost', 'item_count']
     list_per_page = 25
     actions = ['mark_as_processing', 'mark_as_shipped', 'mark_as_delivered', 'mark_as_cancelled']
+    
+    # Use custom template for change form (order details view)
+    change_form_template = 'admin/shop/order/change_form.html'
+    
+    # Remove inlines since we display order items in the custom template
+    inlines = []
+    
+    def has_add_permission(self, request):
+        """Disable adding new orders through admin"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Allow viewing and limited editing (status only) of orders"""
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        """Disable deleting orders through admin"""
+        return False
     
     fieldsets = (
         ('Customer Information', {
@@ -244,8 +249,8 @@ class OrderAdmin(admin.ModelAdmin):
         if obj.pk:
             view_url = reverse('admin:shop_order_change', args=[obj.pk])
             return format_html(
-                '<a href="{}" class="btn btn-sm btn-primary" title="View Order">'
-                '<i class="fas fa-eye"></i> View</a>',
+                '<a href="{}" class="btn btn-sm btn-primary" title="View Order Details">'
+                '<i class="fas fa-eye"></i> Details</a>',
                 view_url
             )
         return '-'
@@ -271,12 +276,44 @@ class OrderAdmin(admin.ModelAdmin):
         updated = queryset.update(status='cancelled')
         self.message_user(request, f'{updated} orders were marked as cancelled.')
     mark_as_cancelled.short_description = "Mark selected orders as cancelled"
+    
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Handle status updates from the custom template"""
+        if request.method == 'POST' and 'status' in request.POST:
+            try:
+                order = self.get_object(request, object_id)
+                old_status = order.status
+                new_status = request.POST['status']
+                
+                if new_status in ['pending', 'processing', 'shipped', 'delivered', 'cancelled']:
+                    order.status = new_status
+                    order.save()
+                    messages.success(request, f'Order #{order.id} status updated from {old_status.title()} to {new_status.title()}.')
+                else:
+                    messages.error(request, 'Invalid status selected.')
+                    
+            except Exception as e:
+                messages.error(request, f'Error updating order status: {str(e)}')
+        
+        return super().change_view(request, object_id, form_url, extra_context)
 
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ['order', 'product', 'price', 'quantity', 'get_cost']
     list_filter = ['order__status', 'order__created_at']
     search_fields = ['product__name', 'order__first_name', 'order__last_name']
-    readonly_fields = ['get_cost']
+    readonly_fields = ['order', 'product', 'price', 'quantity', 'get_cost']
+    
+    def has_add_permission(self, request):
+        """Disable adding new order items"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Disable editing order items"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Disable deleting order items"""
+        return False
 
 # Customize admin site
 admin.site.site_header = "Ipswich Retail Administration"
@@ -289,98 +326,28 @@ from django.shortcuts import render
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.views import LoginView
-from django.contrib.auth.forms import AuthenticationForm
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
-# Create a custom admin site with enhanced dashboard
-from django.contrib.admin import AdminSite
-from django.shortcuts import render
-from django.contrib.admin.views.main import ChangeList
 
-class CustomAdminSite(AdminSite):
-    def index(self, request, extra_context=None):
-        # Get statistics for dashboard
-        total_products = Product.objects.count()
-        total_categories = Category.objects.count()
-        total_orders = Order.objects.count()
-        
-        # Calculate total revenue by summing all order items
-        total_revenue = 0
-        for order in Order.objects.all():
-            total_revenue += order.total_cost
-        
-        # Recent products
-        recent_products = Product.objects.order_by('-created_at')[:5]
-        
-        # Low stock products
-        low_stock_products = Product.objects.filter(stock__lte=10, stock__gt=0).order_by('stock')[:5]
-        
-        # Product status counts
-        active_products = Product.objects.filter(is_active=True).count()
-        inactive_products = Product.objects.filter(is_active=False).count()
-        out_of_stock_products = Product.objects.filter(stock=0).count()
-        
-        extra_context = extra_context or {}
-        extra_context.update({
-            'total_products': total_products,
-            'total_categories': total_categories,
-            'total_orders': total_orders,
-            'total_revenue': total_revenue,
-            'recent_products': recent_products,
-            'low_stock_products': low_stock_products,
-            'active_products': active_products,
-            'inactive_products': inactive_products,
-            'out_of_stock_products': out_of_stock_products,
-        })
-        
-        return super().index(request, extra_context)
     
-    def login(self, request, extra_context=None):
-        """
-        Display the login form for the given HttpRequest.
-        """
-        if request.method == 'GET' and self.has_permission(request):
-            # Already logged-in, redirect to admin index
-            index_path = reverse('admin:index', current_app=self.name)
-            return HttpResponseRedirect(index_path)
-        
-        from django.contrib.auth.views import LoginView
-        from django.contrib.auth.forms import AuthenticationForm
-        
-        context = {
-            'title': _('Log in'),
-            'app_path': request.get_full_path(),
-            'username': request.user.get_username(),
-        }
-        
-        if extra_context is not None:
-            context.update(extra_context)
-        
-        defaults = {
-            'extra_context': context,
-            'authentication_form': AuthenticationForm,
-            'template_name': self.login_template,
-        }
-        
-        return LoginView.as_view(**defaults)(request)
+
+# Create custom admin site
+class CustomAdminSite(AdminSite):
+    site_header = "Ipswich Retail Administration"
+    site_title = "Ipswich Retail Admin"
+    index_title = "Welcome to Ipswich Retail Administration"
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set custom templates
+        self.login_template = 'admin/login.html'
+        self.index_template = 'admin/index.html'
+        self.app_index_template = 'admin/index.html'
 
 # Create custom admin site instance
 custom_admin_site = CustomAdminSite(name='custom_admin')
-custom_admin_site.site_header = "Ipswich Retail Administration"
-custom_admin_site.site_title = "Ipswich Retail Admin"
-custom_admin_site.index_title = "Welcome to Ipswich Retail Administration"
-
-# Configure custom admin site to use our templates
-custom_admin_site.login_template = 'admin/login.html'
-custom_admin_site.index_template = 'admin/index.html'
-custom_admin_site.app_index_template = 'admin/index.html'
 
 # Register models with custom admin site
 custom_admin_site.register(Category, CategoryAdmin)
 custom_admin_site.register(Product, ProductAdmin)
-custom_admin_site.register(Cart, CartAdmin)
 custom_admin_site.register(Order, OrderAdmin)
 custom_admin_site.register(OrderItem, OrderItemAdmin)

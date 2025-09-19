@@ -1,0 +1,291 @@
+{% load admin_modify %}
+
+<fieldset class="module aligned {{ fieldset.classes }}">
+    {% if fieldset.name %}<h2>{{ fieldset.name }}</h2>{% endif %}
+    {% if fieldset.description %}
+        <div class="description">{{ fieldset.description|safe }}</div>
+    {% endif %}
+    
+    {% for line in fieldset %}
+        <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+            {% if line.fields|length_is:'1' %}
+                {% for field in line %}
+                    <div class="field-wrapper">
+                        <label for="{{ field.field.id_for_label }}" class="field-label">
+                            {{ field.field.label }}
+                            {% if field.field.required %}
+                                <span class="required">*</span>
+                            {% endif %}
+                        </label>
+                        
+                        <div class="field-content">
+                            {{ field.field }}
+                            
+                            {% if field.field.help_text %}
+                                <div class="help">{{ field.field.help_text }}</div>
+                            {% endif %}
+                            
+                            {% if field.field.errors %}
+                                <div class="errorlist">
+                                    {{ field.field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                {% for field in line %}
+                    <div class="field-box field-{{ field.field.name }}">
+                        <label for="{{ field.field.id_for_label }}" class="field-label">
+                            {{ field.field.label }}
+                            {% if field.field.required %}
+                                <span class="required">*</span>
+                            {% endif %}
+                        </label>
+                        
+                        <div class="field-content">
+                            {{ field.field }}
+                            
+                            {% if field.field.help_text %}
+                                <div class="help">{{ field.field.help_text }}</div>
+                            {% endif %}
+                            
+                            {% if field.field.errors %}
+                                <div class="errorlist">
+                                    {{ field.field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endfor %}
+</fieldset>
+
+<style>
+.module {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.module h2 {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    margin: 0;
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.module .description {
+    background: var(--light-color);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+.form-row {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.form-row:last-child {
+    border-bottom: none;
+}
+
+.form-row.errors {
+    background: #fef2f2;
+    border-left: 4px solid var(--danger-color);
+}
+
+.field-wrapper {
+    flex: 1;
+    min-width: 300px;
+}
+
+.field-box {
+    flex: 1;
+    min-width: 200px;
+    margin-bottom: 15px;
+}
+
+.field-label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.field-label .required {
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+.field-content {
+    width: 100%;
+}
+
+.field-content input,
+.field-content select,
+.field-content textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: white;
+    font-family: inherit;
+}
+
+.field-content input:focus,
+.field-content select:focus,
+.field-content textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    transform: scale(1.02);
+}
+
+.field-content textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.field-content .help {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.field-content .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0 0;
+}
+
+.field-content .errorlist li {
+    color: var(--danger-color);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    background: #fee2e2;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.field-content .errorlist li:last-child {
+    margin-bottom: 0;
+}
+
+/* File upload styling */
+.field-content input[type="file"] {
+    padding: 8px;
+    border: 2px dashed var(--border-color);
+    background: #f8fafc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.field-content input[type="file"]:hover {
+    border-color: var(--primary-color);
+    background: #f0f9ff;
+}
+
+/* Checkbox styling */
+.field-content input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.field-content .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Image preview */
+.image-preview {
+    margin-top: 10px;
+    max-width: 200px;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .field-wrapper,
+    .field-box {
+        min-width: auto;
+    }
+    
+    .module h2 {
+        font-size: 14px;
+        padding: 12px 15px;
+    }
+    
+    .form-row {
+        padding: 15px;
+    }
+}
+
+/* Image preview functionality */
+.image-preview-container {
+    margin-top: 10px;
+}
+
+.image-preview-container img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    object-fit: cover;
+}
+
+/* File input styling */
+.field-content input[type="file"] {
+    padding: 8px;
+    border: 2px dashed var(--border-color);
+    background: #f8fafc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.field-content input[type="file"]:hover {
+    border-color: var(--primary-color);
+    background: #f0f9ff;
+}
+
+.field-content input[type="file"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+</style>

@@ -1,0 +1,517 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+.changelist-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.changelist-search {
+    background: var(--light-color);
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.changelist-search h2 {
+    margin: 0 0 15px 0;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-form input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-form button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-form button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.changelist-actions {
+    background: white;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.changelist-actions select {
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.changelist-actions select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.changelist-actions button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.changelist-actions button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.changelist-actions button:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.changelist-actions .action-counter {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.results {
+    background: white;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+}
+
+.results table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.results th {
+    background: var(--light-color);
+    color: var(--text-primary);
+    padding: 15px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.results td {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.results tr:hover {
+    background: #f0f9ff;
+    transform: scale(1.001);
+    transition: all 0.2s ease;
+}
+
+.results tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+.results tr:nth-child(even):hover {
+    background: #f0f9ff;
+}
+
+.results a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.results a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.results .action-checkbox-column {
+    width: 40px;
+    text-align: center;
+}
+
+.results input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.paginator {
+    background: white;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.paginator a, .paginator .this-page {
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.paginator a {
+    color: var(--primary-color);
+    background: var(--light-color);
+}
+
+.paginator a:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.paginator .this-page {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+.paginator .this-page:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.completed {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Image thumbnails */
+.thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+/* Action buttons in table */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.action-buttons a {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-buttons .viewlink {
+    background: var(--accent-color);
+    color: white;
+}
+
+.action-buttons .changelink {
+    background: var(--warning-color);
+    color: white;
+}
+
+.action-buttons .deletelink {
+    background: var(--danger-color);
+    color: white;
+}
+
+.action-buttons a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .changelist-search {
+        padding: 15px;
+    }
+    
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-form input[type="text"] {
+        min-width: auto;
+    }
+    
+    .changelist-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .changelist-actions select,
+    .changelist-actions button {
+        width: 100%;
+    }
+    
+    .results th,
+    .results td {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+    
+    .paginator {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="changelist-wrapper">
+    {% if cl.search_fields %}
+    <div class="changelist-search">
+        <h2><i class="fas fa-search"></i> Search</h2>
+        <form method="get" class="search-form">
+            <input type="text" name="q" value="{{ cl.query }}" placeholder="Search {{ cl.opts.verbose_name_plural|lower }}..." />
+            <button type="submit">
+                <i class="fas fa-search"></i>
+                Search
+            </button>
+            {% if cl.query %}
+                <a href="?{% if cl.is_popup %}popup=1{% endif %}" class="button">
+                    <i class="fas fa-times"></i>
+                    Clear
+                </a>
+            {% endif %}
+        </form>
+    </div>
+    {% endif %}
+
+    {% if cl.has_filters %}
+    <div class="changelist-actions">
+        <h3><i class="fas fa-filter"></i> Filters</h3>
+        <div class="filter-group">
+            <p>Use the filters in the right sidebar to narrow down your results.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if cl.formset and cl.formset.errors %}
+        <div class="messagelist">
+            {% for error in cl.formset.errors %}
+                <div class="error">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form id="changelist-form" method="post" novalidate>
+        {% csrf_token %}
+        
+        {% if cl.formset %}
+            <div class="changelist-actions">
+                <select name="action" required>
+                    <option value="">---------</option>
+                    {% for action in cl.action_form.fields.action.choices %}
+                        <option value="{{ action.0 }}">{{ action.1 }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" name="index" value="0" class="button">
+                    <i class="fas fa-play"></i>
+                    Go
+                </button>
+                <span class="action-counter">
+                    <span class="all">{{ cl.result_count }} selected</span>
+                </span>
+            </div>
+        {% endif %}
+
+        <div class="results">
+            {% result_list cl %}
+        </div>
+
+        {% if cl.formset %}
+            <div class="changelist-actions">
+                <select name="action" required>
+                    <option value="">---------</option>
+                    {% for action in cl.action_form.fields.action.choices %}
+                        <option value="{{ action.0 }}">{{ action.1 }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" name="index" value="0" class="button">
+                    <i class="fas fa-play"></i>
+                    Go
+                </button>
+                <span class="action-counter">
+                    <span class="all">{{ cl.result_count }} selected</span>
+                </span>
+            </div>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading state to form submissions
+    const form = document.getElementById('changelist-form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const buttons = form.querySelectorAll('button[type="submit"]');
+            buttons.forEach(button => {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            });
+        });
+    }
+
+    // Add row selection functionality
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const selectAllCheckbox = document.querySelector('input[name="_selected_action"]');
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            checkboxes.forEach(checkbox => {
+                if (checkbox !== this) {
+                    checkbox.checked = this.checked;
+                }
+            });
+        });
+    }
+
+    // Add hover effects to table rows
+    const rows = document.querySelectorAll('.results tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.001)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}

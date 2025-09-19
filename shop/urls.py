@@ -14,6 +14,7 @@ urlpatterns = [
     path('order/<int:order_id>/', views.order_detail, name='order_detail'),
     path('orders/', views.order_history, name='order_history'),
     
+    
     # AJAX endpoints
     path('add-to-cart/', views.add_to_cart, name='add_to_cart'),
     path('cart/update/<int:cart_item_id>/', views.update_cart_item, name='update_cart_item'),

@@ -1,0 +1,422 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}{% trans 'Order Details' %} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ app_label|capfirst|escape }}</a>
+&rsaquo; <a href="{% url 'admin:shop_order_changelist' %}">{% trans 'Orders' %}</a>
+&rsaquo; {% trans 'Order Details' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="order-details-container">
+    <div class="order-header">
+        <h1>Order #{{ original.id }}</h1>
+        <div class="order-status">
+            <span class="status-badge status-{{ original.status }}">
+                {{ original.get_status_display }}
+            </span>
+        </div>
+        <div class="order-date">
+            <strong>Order Date:</strong> {{ original.created_at|date:"F d, Y \a\t g:i A" }}
+        </div>
+    </div>
+
+    <div class="order-sections">
+        <!-- Customer Information -->
+        <div class="order-section">
+            <h2>Customer Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Name:</label>
+                    <span>{{ original.first_name }} {{ original.last_name }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Email:</label>
+                    <span>{{ original.email }}</span>
+                </div>
+                {% if original.user %}
+                <div class="info-item">
+                    <label>Account:</label>
+                    <span>{{ original.user.username }} (ID: {{ original.user.id }})</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="order-section">
+            <h2>Shipping Address</h2>
+            <div class="address-block">
+                <div>{{ original.address }}</div>
+                <div>{{ original.city }}, {{ original.postal_code }}</div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-section">
+            <h2>Order Items</h2>
+            <div class="items-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in original.items.all %}
+                        <tr>
+                            <td>
+                                <div class="product-info">
+                                    <strong>{{ item.product.name }}</strong>
+                                    {% if item.product.short_description %}
+                                    <br><small class="text-muted">{{ item.product.short_description }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>${{ item.price|floatformat:2 }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.get_cost|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="3"><strong>Order Total:</strong></td>
+                            <td><strong>${{ original.total_cost|floatformat:2 }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-section">
+            <h2>Order Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <label>Total Items:</label>
+                    <span>{{ original.items.count }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Total Quantity:</label>
+                    <span>{% for item in original.items.all %}{{ item.quantity }}{% if not forloop.last %} + {% endif %}{% endfor %}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Order Status:</label>
+                    <span class="status-badge status-{{ original.status }}">{{ original.get_status_display }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Last Updated:</label>
+                    <span>{{ original.updated_at|date:"F d, Y \a\t g:i A" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Change Form -->
+    <div class="order-section">
+        <h2>Update Order Status</h2>
+        <form method="post" class="status-form">
+            {% csrf_token %}
+            <div class="status-update">
+                <label for="status">Current Status: <span class="status-badge status-{{ original.status }}">{{ original.get_status_display }}</span></label>
+                <div class="status-controls">
+                    <select name="status" id="status" class="form-select">
+                        <option value="pending" {% if original.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="processing" {% if original.status == 'processing' %}selected{% endif %}>Processing</option>
+                        <option value="shipped" {% if original.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                        <option value="delivered" {% if original.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="cancelled" {% if original.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Update Status
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="order-actions">
+        <a href="{% url 'admin:shop_order_changelist' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+        <a href="{% url 'admin:shop_order_changelist' %}?status={{ original.status }}" class="btn btn-primary">
+            <i class="fas fa-filter"></i> View Similar Orders
+        </a>
+    </div>
+</div>
+
+<style>
+.order-details-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+}
+
+.order-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.order-header h1 {
+    color: #333;
+    margin: 0;
+    font-size: 2rem;
+}
+
+.order-status .status-badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+}
+
+.status-badge.status-pending { background: #fff3cd; color: #856404; }
+.status-badge.status-processing { background: #d1ecf1; color: #0c5460; }
+.status-badge.status-shipped { background: #cce5ff; color: #004085; }
+.status-badge.status-delivered { background: #d4edda; color: #155724; }
+.status-badge.status-cancelled { background: #f8d7da; color: #721c24; }
+
+.order-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.order-sections {
+    display: grid;
+    gap: 30px;
+}
+
+.order-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    border-left: 4px solid #007cba;
+}
+
+.order-section h2 {
+    color: #333;
+    margin: 0 0 20px 0;
+    font-size: 1.25rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item label {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.info-item span {
+    color: #333;
+    font-size: 1rem;
+}
+
+.address-block {
+    background: #fff;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    line-height: 1.6;
+}
+
+.items-table {
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+}
+
+.items-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.items-table th,
+.items-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.items-table th {
+    background: #f8f9fa;
+    font-weight: bold;
+    color: #555;
+}
+
+.items-table tfoot .total-row {
+    background: #e9ecef;
+    font-weight: bold;
+}
+
+.items-table tfoot .total-row td {
+    border-top: 2px solid #007cba;
+    font-size: 1.1rem;
+}
+
+.product-info strong {
+    color: #333;
+}
+
+.product-info small {
+    color: #666;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.summary-item label {
+    font-weight: bold;
+    color: #555;
+}
+
+.summary-item span {
+    color: #333;
+}
+
+.order-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    color: white;
+}
+
+.btn-primary {
+    background: #007cba;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #005a87;
+    color: white;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+    color: white;
+}
+
+.status-form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.status-update label {
+    display: block;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.status-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.form-select {
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 1rem;
+    min-width: 150px;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #007cba;
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.25);
+}
+
+@media (max-width: 768px) {
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
