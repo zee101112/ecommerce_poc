@@ -21,6 +21,9 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '.render.com',  # Allow all Render subdomains
     'ecommerce-poc-onny.onrender.com',  # Specific Render domain
+    'ecommerce-poc-1.onrender.com',  # Current Render domain
+    'ecommerce-poc-2.onrender.com',  # Backup Render domain
+    'ecommerce-poc-3.onrender.com',  # Backup Render domain
 ]
 
 # Get allowed hosts from environment variable
@@ -33,9 +36,19 @@ CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN')
 if CUSTOM_DOMAIN:
     ALLOWED_HOSTS.append(CUSTOM_DOMAIN)
 
+# Add Render's internal host if available
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
 # Also allow any host if DEBUG is True (for troubleshooting)
 if DEBUG:
     ALLOWED_HOSTS = ['*']
+
+# Debug: Print allowed hosts for troubleshooting
+print(f"DEBUG: ALLOWED_HOSTS = {ALLOWED_HOSTS}")
+print(f"DEBUG: RENDER_EXTERNAL_HOSTNAME = {os.environ.get('RENDER_EXTERNAL_HOSTNAME', 'Not set')}")
+print(f"DEBUG: ALLOWED_HOSTS_ENV = {os.environ.get('ALLOWED_HOSTS', 'Not set')}")
 
 # Database configuration for production
 # Render provides a PostgreSQL database URL
