@@ -1,0 +1,346 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    /* Enhanced Product Edit Form Styling */
+    .form-row {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .form-row label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+    
+    /* Image Upload Area */
+    .image-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .image-upload-area:hover {
+        border-color: #0d6efd;
+        background: #e3f2fd;
+    }
+    
+    .image-upload-area.dragover {
+        border-color: #0d6efd;
+        background: #e3f2fd;
+    }
+    
+    /* Product Preview */
+    .product-preview {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-top: 2rem;
+    }
+    
+    .product-preview h3 {
+        color: #0d6efd;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .preview-image {
+        width: 100%;
+        max-width: 300px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .preview-details {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    
+    /* Price and Stock Inputs */
+    .price-stock-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .price-input {
+        position: relative;
+    }
+    
+    .price-input::before {
+        content: '$';
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-weight: 600;
+    }
+    
+    .price-input input {
+        padding-left: 2rem;
+    }
+    
+    /* Status Toggles */
+    .status-toggles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #0d6efd;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    
+    /* Action Buttons */
+    .form-actions {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .btn-save {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .price-stock-row,
+        .status-toggles {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-edit-container">
+    {{ block.super }}
+    
+    <!-- Product Preview -->
+    <div class="product-preview" id="product-preview" style="display: none;">
+        <h3><i class="fas fa-eye me-2"></i>Product Preview</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <img id="preview-image" src="" alt="Product Image" class="preview-image">
+            </div>
+            <div class="col-md-8">
+                <div class="preview-details">
+                    <h4 id="preview-name">Product Name</h4>
+                    <p id="preview-description">Product description will appear here...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span id="preview-price" class="h4 text-success">$0.00</span>
+                        <span id="preview-stock" class="badge bg-success">In Stock</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get form elements
+    const nameInput = document.querySelector('input[name="name"]');
+    const descriptionInput = document.querySelector('textarea[name="description"]');
+    const priceInput = document.querySelector('input[name="price"]');
+    const stockInput = document.querySelector('input[name="stock"]');
+    const imageInput = document.querySelector('input[name="image"]');
+    const preview = document.getElementById('product-preview');
+    
+    // Update preview when form changes
+    function updatePreview() {
+        if (nameInput && nameInput.value) {
+            document.getElementById('preview-name').textContent = nameInput.value;
+            preview.style.display = 'block';
+        }
+        
+        if (descriptionInput && descriptionInput.value) {
+            document.getElementById('preview-description').textContent = descriptionInput.value;
+        }
+        
+        if (priceInput && priceInput.value) {
+            document.getElementById('preview-price').textContent = '$' + parseFloat(priceInput.value).toFixed(2);
+        }
+        
+        if (stockInput && stockInput.value) {
+            const stock = parseInt(stockInput.value);
+            const stockBadge = document.getElementById('preview-stock');
+            if (stock === 0) {
+                stockBadge.textContent = 'Out of Stock';
+                stockBadge.className = 'badge bg-danger';
+            } else if (stock <= 10) {
+                stockBadge.textContent = 'Low Stock (' + stock + ')';
+                stockBadge.className = 'badge bg-warning';
+            } else {
+                stockBadge.textContent = 'In Stock (' + stock + ')';
+                stockBadge.className = 'badge bg-success';
+            }
+        }
+    }
+    
+    // Add event listeners
+    if (nameInput) nameInput.addEventListener('input', updatePreview);
+    if (descriptionInput) descriptionInput.addEventListener('input', updatePreview);
+    if (priceInput) priceInput.addEventListener('input', updatePreview);
+    if (stockInput) stockInput.addEventListener('input', updatePreview);
+    
+    // Handle image preview
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-image').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Initialize preview
+    updatePreview();
+    
+    // Add drag and drop functionality for image upload
+    const imageUploadArea = document.querySelector('.image-upload-area');
+    if (imageUploadArea) {
+        imageUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        imageUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+        
+        imageUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && imageInput) {
+                imageInput.files = files;
+                imageInput.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

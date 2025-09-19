@@ -1,0 +1,208 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Ipswich Retail Shop{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'shop:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">Products</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shop:product_list_by_category' product.category.slug %}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-lg-6">
+            <div class="product-image-container">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="img-fluid product-detail-image product-image" alt="{{ product.name }}" data-bs-toggle="modal" data-bs-target="#imageModal">
+                {% else %}
+                    <div class="product-detail-image bg-light d-flex align-items-center justify-content-center">
+                        <i class="fas fa-image fa-5x text-muted"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="col-lg-6">
+            <div class="product-detail-info">
+                <h1 class="display-5 fw-bold mb-3">{{ product.name }}</h1>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <span class="product-detail-price">${{ product.price }}</span>
+                    {% if product.in_stock %}
+                        <span class="badge bg-success ms-3">In Stock ({{ product.stock }} available)</span>
+                    {% else %}
+                        <span class="badge bg-danger ms-3">Out of Stock</span>
+                    {% endif %}
+                </div>
+
+                {% if product.short_description %}
+                    <p class="lead text-muted mb-4">{{ product.short_description }}</p>
+                {% endif %}
+
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    <p class="text-muted">{{ product.description|linebreaks }}</p>
+                </div>
+
+                <!-- Product Details -->
+                <div class="row mb-4">
+                    <div class="col-sm-6">
+                        <strong>Category:</strong>
+                        <a href="{% url 'shop:product_list_by_category' product.category.slug %}" class="text-decoration-none">
+                            {{ product.category.name }}
+                        </a>
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>SKU:</strong> {{ product.id|stringformat:"06d" }}
+                    </div>
+                </div>
+
+                <!-- Add to Cart Form -->
+                {% if product.in_stock %}
+                <form class="add-to-cart-form mb-4" action="{% url 'shop:add_to_cart' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock }}">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg add-to-cart-btn">
+                                    <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This product is currently out of stock. Please check back later.
+                </div>
+                {% endif %}
+
+                <!-- Product Actions -->
+                <div class="d-flex gap-2 mb-4">
+                    <button class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="shareProduct()">
+                        <i class="fas fa-share me-2"></i>Share
+                    </button>
+                </div>
+
+                <!-- Features -->
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center text-success">
+                            <i class="fas fa-shipping-fast me-2"></i>
+                            <small>Free shipping on orders over $50</small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-center text-success">
+                            <i class="fas fa-undo me-2"></i>
+                            <small>30-day return policy</small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-center text-success">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            <small>Secure payment processing</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4">Related Products</h3>
+            <div class="row g-4">
+                {% for related_product in related_products %}
+                <div class="col-lg-3 col-md-6">
+                    <div class="card product-card h-100">
+                        {% if related_product.image %}
+                            <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.name }}">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-image fa-2x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ related_product.name }}</h6>
+                            <p class="card-text text-muted small">{{ related_product.short_description|default:related_product.description|truncatewords:15 }}</p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-success">${{ related_product.price }}</span>
+                                    {% if related_product.in_stock %}
+                                        <span class="badge bg-success small">In Stock</span>
+                                    {% else %}
+                                        <span class="badge bg-danger small">Out of Stock</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ related_product.get_absolute_url }}" class="btn btn-outline-primary btn-sm w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">{{ product.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareProduct() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ product.name }}',
+            text: 'Check out this product: {{ product.name }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback for browsers that don't support Web Share API
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            alert('Product link copied to clipboard!');
+        });
+    }
+}
+</script>
+{% endblock %}
