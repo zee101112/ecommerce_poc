@@ -1,0 +1,545 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load i18n admin_urls admin_modify %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+/* Enhanced change form styles */
+.change-form-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.change-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.change-form-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.change-form-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+    text-decoration: none;
+}
+
+.back-btn i {
+    margin-right: 0.5rem;
+}
+
+/* Form styling */
+.form-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.form-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 1.5rem 2rem;
+    border-bottom: none;
+}
+
+.form-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.form-body {
+    padding: 2rem;
+}
+
+/* Field styling */
+.form-row {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.form-row label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-row input,
+.form-row textarea,
+.form-row select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.form-row input:focus,
+.form-row textarea:focus,
+.form-row select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background: white;
+    transform: translateY(-2px);
+}
+
+.form-row textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-row .help {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Error styling */
+.form-row .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+}
+
+.form-row .errorlist li {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: var(--danger-color);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-left: 4px solid var(--danger-color);
+    margin-bottom: 0.5rem;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Fieldsets */
+fieldset {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+}
+
+fieldset legend {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* Inline forms */
+.inline-group {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.inline-group h3 {
+    background: linear-gradient(135deg, var(--secondary-color), #7c3aed);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin: -1.5rem -1.5rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Submit buttons */
+.submit-row {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.submit-buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.default {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+}
+
+.default:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+}
+
+.default i {
+    margin-right: 0.5rem;
+}
+
+.deletelink {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+}
+
+.deletelink:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: white;
+    text-decoration: none;
+}
+
+.deletelink i {
+    margin-right: 0.5rem;
+}
+
+/* Image preview */
+.image-preview {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--border-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .change-form-container {
+        padding: 1rem;
+    }
+    
+    .change-form-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-body {
+        padding: 1rem;
+    }
+    
+    .submit-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .submit-buttons {
+        justify-content: center;
+    }
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success message */
+.success-message {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: var(--success-color);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    border-left: 4px solid var(--success-color);
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="change-form-container">
+    <div class="change-form-header">
+        <h1 class="change-form-title">{{ title }}</h1>
+        <div class="change-form-actions">
+            <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_changelist' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <div class="form-header">
+            <h2>
+                {% if is_popup %}
+                {{ title }}
+                {% else %}
+                {% if add %}
+                Add {{ opts.verbose_name }}
+                {% else %}
+                Change {{ opts.verbose_name }}
+                {% endif %}
+                {% endif %}
+            </h2>
+        </div>
+
+        <div class="form-body">
+            <form method="post" id="{{ opts.model_name }}_form" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="error-messages">
+                    {% for error in form.non_field_errors %}
+                    <div class="errorlist">
+                        <li>{{ error }}</li>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% for fieldset in adminform %}
+                <fieldset class="module aligned {{ fieldset.classes }}">
+                    {% if fieldset.name %}<legend>{{ fieldset.name }}</legend>{% endif %}
+                    {% for line in fieldset %}
+                    <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+                        {% for field in line %}
+                        <div class="field-box{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}">
+                            {% if not field.is_readonly %}
+                            <label for="{{ field.field.id_for_label }}" class="required">
+                                {{ field.field.label }}
+                                {% if field.field.field.required %}<span class="asterisk">*</span>{% endif %}
+                            </label>
+                            {% endif %}
+                            
+                            {% if field.is_readonly %}
+                            <div class="readonly">{{ field.contents }}</div>
+                            {% else %}
+                            {{ field.field }}
+                            {% endif %}
+                            
+                            {% if field.field.help_text %}
+                            <div class="help">{{ field.field.help_text }}</div>
+                            {% endif %}
+                            
+                            {% if field.errors %}
+                            <div class="errorlist">
+                                {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </fieldset>
+                {% endfor %}
+
+                {% for inline_admin_formset in inline_admin_formsets %}
+                <div class="inline-group">
+                    <h3>{{ inline_admin_formset.opts.verbose_name_plural|title }}</h3>
+                    {{ inline_admin_formset.formset.management_form }}
+                    {{ inline_admin_formset.formset.non_form_errors }}
+                    {% for inline_admin_form in inline_admin_formset %}
+                    <div class="inline-related{% if forloop.last %} empty-form{% endif %}" id="{{ inline_admin_formset.formset.prefix }}-{% if not forloop.last %}{{ forloop.counter0 }}{% else %}empty{% endif %}">
+                        <h4>
+                            <b>{{ inline_admin_formset.opts.verbose_name|title }}:</b>
+                            <span class="inline_label">{% if not forloop.last %}{{ inline_admin_form.original }}{% else %}New {{ inline_admin_formset.opts.verbose_name }}{% endif %}</span>
+                            {% if inline_admin_formset.formset.can_delete and inline_admin_form.form.DELETE %}
+                            <span class="delete">{{ inline_admin_form.form.DELETE }} {{ inline_admin_form.form.DELETE.label_tag }}</span>
+                            {% endif %}
+                        </h4>
+                        {% if inline_admin_form.form.non_field_errors %}{{ inline_admin_form.form.non_field_errors }}{% endif %}
+                        {% for fieldset in inline_admin_form %}
+                        {% for line in fieldset %}
+                        <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+                            {% for field in line %}
+                            <div class="field-box{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}">
+                                {% if not field.is_readonly %}
+                                <label for="{{ field.field.id_for_label }}" class="required">
+                                    {{ field.field.label }}
+                                    {% if field.field.field.required %}<span class="asterisk">*</span>{% endif %}
+                                </label>
+                                {% endif %}
+                                
+                                {% if field.is_readonly %}
+                                <div class="readonly">{{ field.contents }}</div>
+                                {% else %}
+                                {{ field.field }}
+                                {% endif %}
+                                
+                                {% if field.field.help_text %}
+                                <div class="help">{{ field.field.help_text }}</div>
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                <div class="errorlist">
+                                    {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <div class="submit-row">
+                    <div class="submit-buttons">
+                        <input type="submit" value="{% if is_popup %}{% trans 'Save' %}{% else %}{% if add %}{% trans 'Save and add another' %}{% else %}{% trans 'Save' %}{% endif %}{% endif %}" class="default" name="_save">
+                        {% if not is_popup %}
+                        <input type="submit" value="{% trans 'Save and continue editing' %}" name="_continue" class="default">
+                        {% endif %}
+                        {% if has_delete_permission and not is_popup and not add %}
+                        <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_delete' original.pk %}" class="deletelink">
+                            <i class="fas fa-trash"></i>
+                            {% trans 'Delete' %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('{{ opts.model_name }}_form');
+    const submitBtn = form.querySelector('.default');
+    
+    form.addEventListener('submit', function() {
+        submitBtn.classList.add('loading');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    });
+    
+    // Add focus effects to form fields
+    const inputs = form.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+});
+</script>
+{% endblock %}
