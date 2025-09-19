@@ -10,6 +10,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Collect static files
+export DJANGO_SETTINGS_MODULE=ecommerce_poc.settings_production
 python manage.py collectstatic --noinput
 
 # Run database migrations
