@@ -1,9 +1,11 @@
-{% extends "admin/base.html" %}
-{% load i18n static %}
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/css/modern-admin.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -39,7 +41,7 @@ body {
     padding: 0;
 }
 
-/* Top Navigation Bar */
+/* Override Django's default admin styles */
 #header {
     background: linear-gradient(135deg, var(--topbar-bg) 0%, #f1f5f9 100%);
     border-bottom: 1px solid var(--border-color);
@@ -56,313 +58,265 @@ body {
     padding: 0 2rem;
 }
 
-.admin-brand {
-    display: flex;
-    align-items: center;
+#branding h1 {
+    margin: 0;
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--primary-color);
+}
+
+#branding h1 a {
+    color: var(--primary-color);
     text-decoration: none;
+    display: flex;
+    align-items: center;
 }
 
-.brand-text {
+#branding h1 a:before {
+    content: '\f54e';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
     margin-right: 0.5rem;
+    font-size: 1.25rem;
 }
 
-.brand-subtitle {
-    font-size: 0.875rem;
-    font-weight: 400;
-    color: var(--text-secondary);
-    margin-left: 0.5rem;
-    padding-left: 0.5rem;
-    border-left: 1px solid var(--border-color);
-}
-
-.user-info {
+#user-tools {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.user-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.user-name {
-    font-weight: 600;
+#user-tools a {
     color: var(--text-primary);
-    font-size: 0.875rem;
-}
-
-.user-role {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}
-
-.mobile-menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-
-/* Sidebar */
-#nav-sidebar {
-    position: fixed;
-    top: 70px;
-    left: 0;
-    width: 280px;
-    height: calc(100vh - 70px);
-    background: linear-gradient(180deg, var(--sidebar-bg) 0%, #0f172a 100%);
-    overflow-y: auto;
-    z-index: 999;
-    transition: transform 0.3s ease;
-}
-
-.sidebar-header {
-    padding: 1.5rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sidebar-title {
-    color: white;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
-}
-
-.sidebar-menu {
-    padding: 1rem 0;
-}
-
-.menu-item {
-    display: block;
-    padding: 0.75rem 1.5rem;
-    color: rgba(255, 255, 255, 0.8);
     text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
     transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-    position: relative;
 }
 
-.menu-item:hover {
-    background: var(--sidebar-hover);
+#user-tools a:hover {
+    background: var(--primary-color);
     color: white;
-    border-left-color: var(--primary-color);
-    transform: translateX(4px);
+    text-decoration: none;
 }
 
-.menu-item.active {
-    background: rgba(99, 102, 241, 0.1);
-    color: white;
-    border-left-color: var(--primary-color);
-}
-
-.menu-item i {
-    width: 20px;
-    margin-right: 0.75rem;
-    text-align: center;
-}
-
-.menu-submenu {
-    padding-left: 2.5rem;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.menu-submenu .menu-item {
-    padding: 0.5rem 1.5rem;
-    font-size: 0.875rem;
-}
-
-/* Main Content */
+/* Main content */
 #content {
-    margin-left: 280px;
     margin-top: 70px;
     padding: 2rem;
     min-height: calc(100vh - 70px);
     background: var(--content-bg);
 }
 
+/* Override default form styles */
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row input[type="password"],
+.form-row input[type="number"],
+.form-row textarea,
+.form-row select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.form-row input:focus,
+.form-row textarea:focus,
+.form-row select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background: white;
+    transform: translateY(-2px);
+}
+
+/* Button styles */
+.default,
+input[type="submit"],
+.button {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.default:hover,
+input[type="submit"]:hover,
+.button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    text-decoration: none;
+    color: white;
+}
+
+/* Table styles */
+.results {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.results table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.results thead th {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 1.25rem 1rem;
+    text-align: left;
+    border: none;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.results tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+.results tbody tr:hover {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* Card styles */
+.module {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.module h2 {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin: -1.5rem -1.5rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Error messages */
+.errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+}
+
+.errorlist li {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: var(--danger-color);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-left: 4px solid var(--danger-color);
+    margin-bottom: 0.5rem;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Success messages */
+.messagelist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+}
+
+.messagelist li {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: var(--success-color);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    border-left: 4px solid var(--success-color);
+    margin-bottom: 0.5rem;
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .mobile-menu-btn {
-        display: block;
-    }
-    
-    #nav-sidebar {
-        transform: translateX(-100%);
-    }
-    
-    #nav-sidebar.open {
-        transform: translateX(0);
+    #header {
+        padding: 0 1rem;
     }
     
     #content {
-        margin-left: 0;
+        padding: 1rem;
     }
     
-    .user-details {
-        display: none;
+    .results {
+        overflow-x: auto;
     }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
+/* Loading state */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
 }
 
-::-webkit-scrollbar-track {
-    background: var(--light-color);
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
-::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-dark);
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>
 {% endblock %}
 
 {% block bodyclass %}admin-modern{% endblock %}
-
-{% block content %}
-<div id="header">
-    <div class="d-flex align-items-center">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
-        <a href="{% url 'admin:index' %}" class="admin-brand">
-            <i class="fas fa-store me-2"></i>
-            <span class="brand-text">Ipswich Retail</span>
-            <span class="brand-subtitle">Admin</span>
-        </a>
-    </div>
-    
-    <div class="user-info">
-        <div class="user-avatar">
-            {% if user.is_authenticated %}
-                {{ user.first_name.0|default:user.username.0|upper }}
-            {% else %}
-                A
-            {% endif %}
-        </div>
-        <div class="user-details">
-            <div class="user-name">
-                {% if user.is_authenticated %}
-                    {{ user.get_full_name|default:user.username }}
-                {% else %}
-                    Admin User
-                {% endif %}
-            </div>
-            <div class="user-role">Administrator</div>
-        </div>
-    </div>
-</div>
-
-<nav id="nav-sidebar">
-    <div class="sidebar-header">
-        <div class="sidebar-title">Navigation</div>
-    </div>
-    
-    <div class="sidebar-menu">
-        <a href="{% url 'admin:index' %}" class="menu-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
-            <i class="fas fa-tachometer-alt"></i>
-            Dashboard
-        </a>
-        
-        <a href="{% url 'admin:shop_product_changelist' %}" class="menu-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="fas fa-box"></i>
-            Products
-        </a>
-        
-        <a href="{% url 'admin:shop_category_changelist' %}" class="menu-item {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="fas fa-tags"></i>
-            Categories
-        </a>
-        
-        <a href="{% url 'admin:shop_order_changelist' %}" class="menu-item {% if 'order' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="fas fa-shopping-cart"></i>
-            Orders
-        </a>
-        
-        <a href="{% url 'admin:shop_cart_changelist' %}" class="menu-item {% if 'cart' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="fas fa-shopping-bag"></i>
-            Shopping Carts
-        </a>
-        
-        <a href="{% url 'admin:auth_user_changelist' %}" class="menu-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="fas fa-users"></i>
-            Users
-        </a>
-        
-        <a href="{% url 'admin:auth_group_changelist' %}" class="menu-item {% if 'group' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="fas fa-user-friends"></i>
-            Groups
-        </a>
-        
-        <div class="menu-submenu">
-            <a href="{% url 'admin:shop_product_add' %}" class="menu-item">
-                <i class="fas fa-plus"></i>
-                Add Product
-            </a>
-            <a href="{% url 'admin:shop_category_add' %}" class="menu-item">
-                <i class="fas fa-plus"></i>
-                Add Category
-            </a>
-        </div>
-    </div>
-</nav>
-
-<div id="content">
-    {% block content %}
-    {% endblock %}
-</div>
-
-<script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('nav-sidebar');
-    sidebar.classList.toggle('open');
-}
-
-// Close sidebar when clicking outside on mobile
-document.addEventListener('click', function(event) {
-    const sidebar = document.getElementById('nav-sidebar');
-    const menuBtn = document.querySelector('.mobile-menu-btn');
-    
-    if (window.innerWidth <= 768 && 
-        !sidebar.contains(event.target) && 
-        !menuBtn.contains(event.target)) {
-        sidebar.classList.remove('open');
-    }
-});
-
-// Handle window resize
-window.addEventListener('resize', function() {
-    const sidebar = document.getElementById('nav-sidebar');
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('open');
-    }
-});
-</script>
-{% endblock %}

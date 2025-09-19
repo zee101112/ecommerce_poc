@@ -289,6 +289,11 @@ from django.shortcuts import render
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.forms import AuthenticationForm
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 # Create a custom admin site with enhanced dashboard
 from django.contrib.admin import AdminSite
@@ -332,12 +337,46 @@ class CustomAdminSite(AdminSite):
         })
         
         return super().index(request, extra_context)
+    
+    def login(self, request, extra_context=None):
+        """
+        Display the login form for the given HttpRequest.
+        """
+        if request.method == 'GET' and self.has_permission(request):
+            # Already logged-in, redirect to admin index
+            index_path = reverse('admin:index', current_app=self.name)
+            return HttpResponseRedirect(index_path)
+        
+        from django.contrib.auth.views import LoginView
+        from django.contrib.auth.forms import AuthenticationForm
+        
+        context = {
+            'title': _('Log in'),
+            'app_path': request.get_full_path(),
+            'username': request.user.get_username(),
+        }
+        
+        if extra_context is not None:
+            context.update(extra_context)
+        
+        defaults = {
+            'extra_context': context,
+            'authentication_form': AuthenticationForm,
+            'template_name': self.login_template,
+        }
+        
+        return LoginView.as_view(**defaults)(request)
 
 # Create custom admin site instance
 custom_admin_site = CustomAdminSite(name='custom_admin')
 custom_admin_site.site_header = "Ipswich Retail Administration"
 custom_admin_site.site_title = "Ipswich Retail Admin"
 custom_admin_site.index_title = "Welcome to Ipswich Retail Administration"
+
+# Configure custom admin site to use our templates
+custom_admin_site.login_template = 'admin/login.html'
+custom_admin_site.index_template = 'admin/index.html'
+custom_admin_site.app_index_template = 'admin/index.html'
 
 # Register models with custom admin site
 custom_admin_site.register(Category, CategoryAdmin)
