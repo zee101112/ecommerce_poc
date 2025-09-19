@@ -54,6 +54,14 @@ DATABASES = {
 if 'DATABASE_URL' in os.environ:
     import dj_database_url
     DATABASES['default'] = dj_database_url.parse(os.environ['DATABASE_URL'])
+else:
+    # Fallback to SQLite if no DATABASE_URL is provided
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Add WhiteNoise middleware for static files
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
