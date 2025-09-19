@@ -1,7 +1,6 @@
 // Main JavaScript for Ipswich Retail Shop
 
 document.addEventListener('DOMContentLoaded', function() {
-    
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -36,8 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-CSRFToken': csrfToken
                 }
             })
             .then(response => {
@@ -216,11 +214,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const cartItemId = this.dataset.cartItemId;
             
             if (confirm('Are you sure you want to remove this item from your cart?')) {
-                fetch(`/cart/remove/${cartItemId}/`, {
+                fetch(`/shop/cart/remove/${cartItemId}/`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 })
                 .then(response => response.json())
@@ -365,7 +362,7 @@ function updateCartTotalFromDOM() {
     const cartItems = document.querySelectorAll('.cart-item');
     let total = 0;
     
-    cartItems.forEach((item, index) => {
+    cartItems.forEach(item => {
         const quantityInput = item.querySelector('.quantity-input');
         const priceElement = item.querySelector('.col-md-2 .fw-bold.text-success');
         
