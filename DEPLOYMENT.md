@@ -6,7 +6,7 @@ This guide will help you deploy your Django e-commerce application to Render.com
 
 - GitHub repository: https://github.com/zee101112/ecommerce_poc
 - Render.com account
-- GitHub access token: `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`
+- GitHub access token: `YOUR_GITHUB_ACCESS_TOKEN`
 
 ## Deployment Steps
 
