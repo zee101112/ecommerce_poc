@@ -20,6 +20,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.render.com',  # Allow all Render subdomains
+    'ecommerce-poc-onny.onrender.com',  # Specific Render domain
 ]
 
 # Get allowed hosts from environment variable
