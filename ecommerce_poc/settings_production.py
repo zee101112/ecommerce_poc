@@ -20,8 +20,12 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.render.com',  # Allow all Render subdomains
-    'ecommerce-poc-onny.onrender.com',  # Your specific Render domain
 ]
+
+# Get allowed hosts from environment variable
+ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS')
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS.extend(ALLOWED_HOSTS_ENV.split(','))
 
 # Add your custom domain here if you have one
 CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN')
